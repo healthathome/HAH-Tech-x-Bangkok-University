@@ -1,0 +1,22 @@
+{
+	"name": "hah-x-bu",
+	"description": "Line Liff and Webhook for line chat bot",
+	"scripts": {
+		"dev": "node ./webhook/index.js"
+	},
+	"engines": {
+		"node": "20"
+	},
+	"main": "index.js",
+	"dependencies": {
+		"@google/generative-ai": "^0.21.0",
+		"axios": "^1.7.9",
+		"body-parser": "^1.20.3",
+		"dotenv": "^16.4.7",
+		"express": "^4.21.2",
+		"http-server": "^14.1.1",
+		"node-cache": "^5.1.2"
+	},
+	"devDependencies": {},
+	"private": true
+}

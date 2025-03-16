@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,viewport-fit=cover">
+	<title>Example LIFF</title>
+</head>
+<body>
+	<h3>getEnvironment</h3>
+	<div class="group"><div>Is Login?:</div><div id="environment-isLogin"></div></div>
+	<div class="group"><div>OS:</div><div id="environment-os"></div></div>
+	<div class="group"><div>Language:</div><div id="environment-language"></div></div>
+	<div class="group"><div>LIFF SDK Version:</div><div id="environment-version"></div></div>
+	<div class="group"><div>LINE Version:</div><div id="environment-line-version"></div></div>
+	<div class="group"><div>Running in LIFF browser:</div><div id="environment-isInClient"></div></div>
+
+	<h3>getProfile</h3>
+	<img id="profile-pictureUrl">
+	<div class="group"><div>userId:</div><div id="profile-userId"></div></div>
+	<div class="group"><div>Status Message:</div><div id="profile-statusMessage"></div></div>
+	<div class="group"><div>Display Name:</div><div id="profile-displayName"></div></div>
+	<div class="group"><div>Email:</div><div id="profile-decodedIDToken"></div></div>
+
+	<h3>getContext</h3>
+	<div class="group"><div>Type:</div><div id="context-type"></div></div>
+
+	<h3>getFriendship</h3>
+	<div class="group"><div>Type:</div><div id="friend-flag"></div></div>
+
+	<h3>scanCode</h3>
+	<div class="group"><div>Result:</div><div id="scanCode-result"></div></div>
+
+	<div class="button-group">
+		<button id="btn-msg" onclick="sendMessage()">Send Message</button>
+		<button id="btn-share-msg" onclick="shareMessage()">Share Message</button>
+		<button id="btn-open-window" onclick="openWindow()">Open Window</button>
+		<button id="btn-scancode" onclick="scanCode()">Scan Code</button>
+		<button id="btn-close" onclick="closeLiff()">Close</button>
+		<button id="btn-logout" onclick="logOut()">Log Out</button>
+	</div>
+</body>
+
+<!-- <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
+<script>
+	var vConsole = new window.VConsole()
+</script> -->
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>	
+	function getEnvironment () {
+		document.getElementById('environment-os').innerText = liff.getOS()
+		document.getElementById('environment-language').innerText = liff.getAppLanguage()
+		document.getElementById('environment-version').innerText = liff.getVersion()
+		document.getElementById('environment-line-version').innerText = liff.getLineVersion()
+		document.getElementById('environment-isInClient').innerText = liff.isInClient()
+
+		if (liff.isInClient()) {
+			document.getElementById('btn-logout').style.display = 'none'
+		} else {
+			document.getElementById('btn-msg').style.display = 'none'
+			document.getElementById('btn-close').style.display = 'none'
+		}
+	}
+
+	async function getUserProfile () {
+		const profile = await liff.getProfile()
+		console.log('profile', profile)
+
+		document.getElementById('profile-pictureUrl').src = profile.pictureUrl
+		document.getElementById('profile-userId').innerText = profile.userId
+		document.getElementById('profile-statusMessage').innerText = profile.statusMessage
+		document.getElementById('profile-displayName').innerText = profile.displayName
+
+		console.log('DecodedIDToken', liff.getDecodedIDToken())
+		document.getElementById('profile-decodedIDToken').innerText = liff.getDecodedIDToken().email
+	}
+
+	function getContext () {
+		const context = liff.getContext()
+		console.log('context', context)
+		document.getElementById('context-type').innerText = context.type
+	}
+
+	async function sendMessage () {
+		if (liff.getContext().type !== 'none') {
+			await liff.sendMessages([
+				{
+					type: 'sticker',
+					stickerId: 1,
+					packageId: 1
+				},
+				{
+					type: 'text',
+					text: 'ฉันง่วงจัง',
+				},
+			])
+			alert('ส่งข้อความแล้วนะ')
+		} else {
+			alert('คุณยังไม่ได้เปิดผ่านแชทนี่หน่า')
+		}
+	}
+
+	async function shareMessage () {
+		await liff.shareTargetPicker(
+			[
+				{
+					type: 'text',
+					text: 'เฮ่โย่ว!! นี่คือเสียงเรียกจาก BOT',
+				},
+    		],
+			{
+				isMultiple: false,
+			}
+		)
+	}
+
+	async function getFriendship () {
+		const friend = await liff.getFriendship()
+		console.log('friend', friend)
+
+		document.getElementById('friend-flag').innerText = friend.friendFlag
+	}
+
+	function openWindow () {
+		liff.openWindow({
+			url: 'https://healthathome.in.th/',
+			external: false
+		})
+	}
+
+	async function scanCode () {
+		const result = await liff.scanCodeV2()
+		console.log('scan-result', result)
+
+		document.getElementById('scanCode-result').innerText = result.value
+	}
+
+	function closeLiff () {
+		liff.closeWindow()
+	}
+
+	function logOut () {
+		liff.logout()
+		window.location.reload()
+	}
+
+	async function main () {
+		// -- START HACK ---------------------------------------
+		// Hack: fix bug when open LIFF on android mobile
+		// ref: https://narongdej.dev/blog/th/2024/04/04/%E0%B8%A7%E0%B8%B4%E0%B8%98%E0%B8%B5%E0%B9%81%E0%B8%81%E0%B9%89-type-error-failed-to-fetch-%E0%B9%83%E0%B8%99-line-liff-android
+		const originalFetch = window.fetch
+		function customFetch(url, options) {
+			if (url.toString().startsWith('https://liffsdk.line-scdn.net/xlt/') && url.toString().endsWith('.json')) {
+				url = url + '?ts=' + Math.random()
+			}
+			return originalFetch(url, options)
+		}
+		window.fetch = customFetch
+		// -- END HACK ---------------------------------------
+
+		liff.ready.then(() => {
+			document.getElementById('environment-isLogin').innerText = liff.isLoggedIn()
+			if (liff.isLoggedIn()) {
+				getEnvironment()
+				getUserProfile()
+				getContext()
+				getFriendship()
+			} else {
+				liff.login()
+			}
+		})
+
+		await liff.init({ liffId: '<YOUR_LIFF_ID>' })
+
+		// wait for loading all data
+		document.querySelector('body').style.display = 'flex'
+	}
+
+	main()
+</script>
+<style>
+	body {
+		display: none;
+		flex-direction: column;
+	}
+
+	h3 {
+		color: #00BD8F;
+	}
+
+	div.group {
+		padding: 8px 0px;
+		display: flex;
+		flex-direction: row;
+		border-bottom: 1px dashed #00BD8F;
+	}
+
+	img {
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+	}
+
+	div.group > div {
+		flex: 2;
+		font-weight: 700;
+	}
+
+	div.group > div + div {
+		flex: 3;
+		font-weight: 400;
+		word-break: break-all;
+	}
+
+	div.button-group {
+		margin-top: 32px;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	button {
+		padding: 12px 0;
+		background-color: #00BD8F;
+		border-radius: 4px;
+		color: white;
+		font-weight: 600;
+		outline: none;
+		border: none;
+	}
+</style>
+</html>

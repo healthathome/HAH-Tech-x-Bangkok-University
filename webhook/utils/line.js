@@ -1,21 +1,20 @@
 const axios = require('axios')
 
 const LINE_HEADER = {
-		'Content-Type': 'application/json',
-		Authorization: `Bearer ${process.env.CHANNEL_ACCESS_TOKEN}`
+	'Content-Type': 'application/json',
+	Authorization: `Bearer ${process.env.CHANNEL_ACCESS_TOKEN}`
+}
+
+function isValidJSON (str) {
+	try {
+		JSON.parse(str)
+		return true
+	} catch (e) {
+		return false
+	}
 }
 
 class LINE {
-	async getImageBinary (messageId) {
-		const originalImage = await axios({
-			method: 'get',
-			headers: LINE_HEADER,
-			url: `https://api-data.line.me/v2/bot/message/${messageId}/content`,
-			responseType: 'arraybuffer'
-		})
-		return originalImage.data
-	}
-	
 	reply (token, payload) {
 		console.log(payload)
 		return axios({
@@ -24,7 +23,7 @@ class LINE {
 			headers: LINE_HEADER,
 			data: {
 				replyToken: token,
-				messages: JSON.parse(payload) || payload
+				messages: isValidJSON(payload) ? JSON.parse(payload) : payload
 			}
 		})
 	}

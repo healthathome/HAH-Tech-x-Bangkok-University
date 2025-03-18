@@ -33,7 +33,7 @@
 <br>
 
 # Slide ประกอบการสอน
-> จะตามมาภายหลังนะ 🤫
+> https://www.canva.com/design/DAGgHvYxNow/tJ2tr1S1AFInhnqni4npVw/edit
 
 <br>
 
